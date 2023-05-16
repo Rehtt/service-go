@@ -6,6 +6,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/Rehtt/Kit/sudo"
 	"os"
 	"os/signal"
 	"strconv"
@@ -263,6 +264,21 @@ func (ws *windowsService) setEnvironmentVariablesInRegistry() error {
 		return fmt.Errorf("failed closing env var registry key, err = %v", err)
 	}
 	return nil
+}
+
+func (ws *windowsService) RunAsAdmin(param ...string) error {
+	exepath, err := ws.execPath()
+	if err != nil {
+		return err
+	}
+	tmp := make([]string, 0, len(param)+1)
+	tmp = append(tmp, exepath)
+	tmp = append(tmp, param...)
+	c, err := sudo.SudoRunShell(tmp...)
+	if err != nil {
+		return err
+	}
+	return c.Run()
 }
 
 func (ws *windowsService) Install() error {
